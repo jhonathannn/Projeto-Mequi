@@ -1,12 +1,16 @@
 "use client"
 
 import { Prisma } from "@prisma/client";
+import { ScrollArea } from "@radix-ui/react-scroll-area";
 import { ChefHatIcon, ChevronLeftIcon, ChevronRightIcon } from "lucide-react";
 import Image from "next/image";
-import { useState } from "react";
+import { useContext, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { formatCurrency } from "@/helpers/format-currency";
+
+import { CartContext } from "../../context/cart";
+import CartSheets from "./cart-sheet";
 
 interface ProductDetailProps{
     product: Prisma.ProductGetPayload<{include: {
@@ -21,6 +25,8 @@ interface ProductDetailProps{
 
 const ProductDetail = ({product}: ProductDetailProps) => {
 
+    const { toggleCart} = useContext(CartContext)
+
     const [quantity, setQuantity] = useState<number>(1)
 
     const handleDecreaseQuantity = () => {
@@ -31,12 +37,19 @@ const ProductDetail = ({product}: ProductDetailProps) => {
             return prev - 1
         })
     }
+
     const handleIncreaseQuantity = () => {
         setQuantity((prev) => prev + 1)
     }
+
+    const handleAddToCart = () => {
+        toggleCart()
+    }
+
     return ( 
-        <div className="relative z-50 rounded-t-3xl mt-[-1.5rem] p-5  flex flex-col flex-auto">
-            <div className="flex-auto">
+        <>
+        <div className="relative z-50 rounded-t-3xl mt-[-1.5rem] p-5  flex flex-col flex-auto overflow-hidden">
+            <div className="flex-auto overflow-hidden">
                 {/* restaurante */}
                 <div className="flex items-center gap-1.5 ">
                     <Image
@@ -68,24 +81,32 @@ const ProductDetail = ({product}: ProductDetailProps) => {
                     </div>
                 </div>
 
-                {/* sobre */}
-                <div className="mt-6 space-y-3">
-                    <h4 className="font-semibold">Sobre</h4>
-                    <p className="text-sm text-muted-foreground">{product.description}</p>
-                </div>
-
-                {/* Ingredientes */}
-                <div className="mt-6 space-y-3">
-                    <div className="flex items-center gap-1">
-                        <ChefHatIcon size={18}/>
-                        <h4 className="font-semibold">Ingredientes</h4>
+                <ScrollArea className="h-full">
+                    {/* sobre */}
+                    <div className="mt-6 space-y-3">
+                        <h4 className="font-semibold">Sobre</h4>
+                        <p className="text-sm text-muted-foreground">{product.description}</p>
                     </div>
-                    <p className="text-sm text-muted-foreground">{product.description}</p>
-                </div>
 
-                <Button className="rounded-full w-full mt-6">Adicionar à sacola</Button>
+                    {/* Ingredientes */}
+                    <div className="mt-6 space-y-3">
+                        <div className="flex items-center gap-1">
+                            <ChefHatIcon size={18}/>
+                            <h4 className="font-semibold">Ingredientes</h4>
+                        </div>
+                        <ul className="list-disc px-5 text-sm text-muted-foreground">
+                            {product.ingredients.map((i) =>(
+                                <li key={i}>{i}</li>
+                            ))}
+                        </ul>
+                    </div>
+                </ScrollArea>
             </div>
+
+             <Button onClick={handleAddToCart} className="rounded-full w-full mt-6">Adicionar à sacola</Button>
         </div>
+        <CartSheets/>
+        </>
      );
 }
  
